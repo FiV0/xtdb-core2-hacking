@@ -1,7 +1,20 @@
 {:paths ["src" "resources"]
 
  :deps
- {org.clojure/clojure {:mvn/version "1.11.1"}}
+ {org.clojure/clojure                 {:mvn/version "1.11.1"}
+  com.github.seancorfield/next.jdbc   {:mvn/version "1.2.772"}
+  org.xerial/sqlite-jdbc              {:mvn/version "3.36.0.3"}
+
+  com.xtdb.labs/core2-core
+  {:git/url "ssh://git@github.com/xtdb/core2"
+   ;; update this to the latest SHA:
+   :git/sha "28ea1ee464101aa49432a57a222f58baf46c76ad"
+   :deps/root "core"}
+
+  ;; TODO: users shouldn't have to specify this manually
+  com.widdindustries/time-literals {:mvn/version "0.1.6"}
+  camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}
+  }
 
  :aliases
  {:dev

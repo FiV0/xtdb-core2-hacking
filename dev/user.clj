@@ -8,7 +8,8 @@
   (watch-deps/start! {:aliases [:dev :test]}))
 
 (defn go []
-  (watch-deps!))
+  nil
+  #_(watch-deps!))
 
 (comment
   (repl/set-refresh-dirs (io/file "src") (io/file "dev"))
