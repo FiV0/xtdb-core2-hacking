@@ -2,7 +2,8 @@
   (:require [core2.api :as c2]
             [core2.local-node :as local-node]
             [core2.sql.pgwire :as pgwire]
-            [clojure.set]))
+            [clojure.set]
+            [clojure.java.io :as io]))
 
 (def node (local-node/start-node {}))
 
@@ -25,4 +26,44 @@
                           [?t :track/album ?album]
                           [?album :album/artist ?artist]
                           [?artist :artist/name ?name]]})
-     #_(into []))
+     (into []))
+
+;;///////////////////////////////////////////////////////////////////////////////
+;;===============================================================================
+;;                               persitstent node
+;;===============================================================================
+;;\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+(def dir (io/file "data"))
+
+(def persistent-node
+  (->> {:core2.log/local-directory-log {:root-path (io/file dir "log")}
+        :core2.buffer-pool/buffer-pool {:cache-path (io/file dir "buffers")}
+        :core2.object-store/file-system-object-store {:root-path (io/file dir "objects")}}
+       (local-node/start-node)))
+
+(comment
+  (def basis @(c2/submit-tx persistent-node [[:put {:_id 1 :data -1 }]]))
+  (c2/sql-query persistent-node "select a.data from a" {:basis basis})
+  ;; => [{:data -1}]
+  (def basis2 @(c2/submit-tx persistent-node [[:put {:_id 1 :data 2 }]]))
+  (c2/sql-query persistent-node "select some.data from some" {:basis basis2})
+  ;; => [{:data 2}]
+  (def basis3 @(c2/submit-tx persistent-node [[:put {:_id 1  :data 3}]]))
+  (c2/sql-query persistent-node "select foo.data from foo" {:basis basis3})
+  ;; => [{:data 0}]
+  (def basis4 @(c2/submit-tx persistent-node [[:put {:_id 2 :data 4}]]))
+  (c2/sql-query persistent-node "select foo.data from foo" {:basis basis3})
+  ;; => [{:data 0} {:data 4}]
+
+  (.close persistent-node)
+
+
+  (def basis1 @(c2/submit-tx persistent-node [[:put {:_id 1  :data 1}]]))
+  (c2/sql-query persistent-node "select foo.data from foo" {:basis basis1})
+  ;; => [{:data 1}]
+  (def basis2 @(c2/submit-tx persistent-node [[:put {:_id 2 :data 2}]]))
+  (c2/sql-query persistent-node "select foo.data from foo" {:basis basis1})
+  ;; => [{:data 1} {:data 2}]
+
+ )
