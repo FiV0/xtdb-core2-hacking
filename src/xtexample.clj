@@ -59,11 +59,11 @@
   (.close persistent-node)
 
 
-  (def basis1 @(c2/submit-tx persistent-node [[:put {:_id 1  :data 1}]]))
-  (c2/sql-query persistent-node "select foo.data from foo" {:basis basis1})
+  (def tx1 @(c2/submit-tx persistent-node [[:put {:_id 1  :data 1}]]))
+  (c2/sql-query persistent-node "select foo.data from foo" {:basis {:tx tx1}})
   ;; => [{:data 1}]
-  (def basis2 @(c2/submit-tx persistent-node [[:put {:_id 2 :data 2}]]))
-  (c2/sql-query persistent-node "select foo.data from foo" {:basis basis1})
+  (def tx2 @(c2/submit-tx persistent-node [[:put {:_id 2 :data 2}]]))
+  (c2/sql-query persistent-node "select foo.data from foo" {:basis {:tx tx1}})
   ;; => [{:data 1} {:data 2}]
 
  )
