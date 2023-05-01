@@ -159,6 +159,28 @@
 ;;      {:start #time/zoned-date-time "2023-05-01T19:03:09.874172Z[UTC]",
 ;;       :end #time/zoned-date-time "9999-12-31T23:59:59.999999Z[UTC]"}}]
 
+;; Current time
+
+;; Every query is executed with respect to some current time. `now` if not otherwise specified.
+
+;; Number of people alive in 1950.
+(xt/q node  (assoc '{:find [(count id)]
+                     :keys [nb-alive-people]
+                     :where [(match :people {:xt/id id})]}
+                   :basis {:current-time (util/->instant #inst "1950")}))
+;; => [{:nb-alive-people 29}]
+
+;; Number of people that will be born after 1950
+(xt/q node  (assoc '{:find [(count id)]
+                     :keys [to-be-born]
+                     :where [(match :people {:xt/id id :xt/valid-from vt-from} {:for-valid-time :all-time})
+                             [(<= (current-timestamp) vt-from)]]}
+                   :basis {:current-time (util/->instant #inst "1950")}))
+;; => [{:to-be-born 21}]
+
+
+;; Periods
+
 ;; There are some temporal predicates especially for periods. You can find them
 ;; in the reference at
 ;; https://www.xtdb.com/reference/main/stdlib/temporal
